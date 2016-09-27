@@ -1,0 +1,21 @@
+#!/bin/bash
+# This script could be run periodically to backup SQLite3 database
+# Supports backing up to multiple destinations (different disks maybe)
+# Supports rotating, which archives the backups when there is
+# more than 22 backups in one day
+DB_FILE="/media/xxxxxx/db.sqlite3"
+DB_BAK_PREFIX=tech
+CURRENT_DAY=`date +%Y%m%d`
+BACKUP_DEST=("/media/db_backup" "/var/db_backup" "/tmp/db_backup")
+
+for BACKUP_DIR in "${BACKUP_DEST[@]}"; do
+mkdir -p $BACKUP_DIR
+cp $DB_FILE $BACKUP_DIR/${DB_BAK_PREFIX}-`date +%Y%m%d-%H%M%S`.sqlite3
+
+BACKUP_NUM=`ls -1 $BACKUP_DIR/${DB_BAK_PREFIX}-${CURRENT_DAY}-*.sqlite3|wc -l`
+if [ $BACKUP_NUM -gt 22 ]; then
+    cd $BACKUP_DIR
+    tar -z --remove-files -c -f ${DB_BAK_PREFIX}-${CURRENT_DAY}.tar.gz ${DB_BAK_PREFIX}-${CURRENT_DAY}-*.sqlite3
+fi
+
+done
