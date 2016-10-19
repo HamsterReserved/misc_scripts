@@ -8,7 +8,7 @@
 
 typedef struct _rj_property_header {
     uint8_t magic; // 0x1a
-    uint8_t header_type; // guessed
+    uint8_t header_len; // guessed
     uint8_t magic_2[4]; // 0x00, 0x00, 0x13, 0x11
     uint8_t type;
     uint8_t len; // including type and len, thus content size is len - 2
@@ -52,12 +52,12 @@ static void print_header(const rj_prop_header* header) {
     format_hex_string(hex_buf, header->magic_2, 4, 16, TRUE);
     PRINT_INFO("INFO:"
            "\theader->magic = 0x%02hhx\n"
-           "\theader->header_type = 0x%02hhx\n"
+           "\theader->header_len = 0x%02hhx\n"
            "\theader->magic_2 = %s\n"
            "\theader->type = 0x%02hhx\n"
            "\theader->len = 0x%02hhx (including type and len, actual size = 0x%02hhx)\n",
            header->magic,
-           header->header_type,
+           header->header_len,
            hex_buf,
            header->type,
            header->len, header->len - 2
