@@ -1,0 +1,19 @@
+{
+	"Doxygen File Header": {
+		"prefix": "fileheader",
+		"body": [
+			"/*\t\t\tCopyright(c) 2008-2017 xxxx\n *\\file\t\t\n *\\brief\t\n *\\details\t\n\n *\\author\t\n *\\version\t\n *\\date\t\t\n\n *\\warning\t\n\n *\\history \\arg \n *         \\arg \n */",
+			"$2"
+		],
+		"description": "Doxygen File Header"
+	},
+
+	"Doxygen Function Header": {
+		"prefix": "funcheader",
+		"body": [
+			"/*\n *\\fn\t\t\t\n *\\brief\t\t\n *\\details\t\t\n *\n *\\param[in]\t\n *\\param[in]\t\n *\\param[out]\t\n *\n *\\return\t\t\n *\\retval\t\t\n *\n *\\note\t\t\t\n */",
+			"$2"
+		],
+		"description": "Doxygen Function Header"
+	}
+}
