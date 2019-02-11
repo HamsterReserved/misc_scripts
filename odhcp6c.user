@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Update radvd configuration when PD prefix change
+
+teardown() {
+	uci set radvd.pd_lan.ignore=1
+	uci commit
+	/etc/init.d/radvd restart
+}
+
+setup() {
+	sleep 3 # Wait for netifd complete its update
+	ADDR=$(ifstatus lan|jsonfilter -e '@["ipv6-prefix-assignment"][0].address') # Assume 0 being the PD prefix, and 1 tunnel prefix
+	MASK=$(ifstatus lan|jsonfilter -e '@["ipv6-prefix-assignment"][0].mask')
+
+	if [ "${ADDR:0:4}" != "240e" ]; then
+		logger -t radvd "No 240e available?"
+		return
+	fi
+
+	RADVD_PREFIX=$ADDR/$MASK
+	CURR_RADVD_PREFIX=$(uci get radvd.pd_lan.prefix)
+	RADVD_IGNORED=$(uci get radvd.pd_lan.ignore)
+	if [ "$RADVD_IGNORED" = 1 -o "$CURR_RADVD_PREFIX" != "$RADVD_PREFIX" ]; then
+		uci set radvd.pd_lan.prefix=$RADVD_PREFIX
+		uci set radvd.pd_lan.ignore=0
+		uci commit
+		/etc/init.d/radvd restart
+		logger -t radvd "PD prefix updated: $CURR_RADVD_PREFIX -> $RADVD_PREFIX"
+	fi
+}
+
+case "$2" in
+        bound)
+                teardown
+                setup 
+        ;;
+        informed|updated|rebound)
+                setup 
+        ;;
+        ra-updated)
+                [ -n "$PREFIXES" ] && setup 
+        ;;
+        started|stopped|unbound)
+                teardown
+        ;;
+esac
