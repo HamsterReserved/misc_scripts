@@ -2,7 +2,7 @@
 
 # Burst 3 packets with timestamp every second to an echo server.
 # Used for monitoring network quality.
-# Usage: ./udp_echo_client.py <server ip> <server port> <tcp|udp>
+# Usage: ./udp_echo_client.py <server ip> <server port> <tcp|udp> [http proxy ip] [http proxy port]
 # TCP doesn't work unless you reduce the burst count to 1.
 
 import struct
@@ -15,6 +15,8 @@ import time
 SERVER_IP = sys.argv[1]
 SERVER_PORT = int(sys.argv[2])
 PROTO = sys.argv[3]
+HTTP_PROXY_IP = None if len(sys.argv) < 6 else sys.argv[4]
+HTTP_PROXY_PORT = None if len(sys.argv) < 6 else sys.argv[5]
 
 EXITING = False
 
@@ -22,9 +24,19 @@ RCVD_CNT = 0
 SENT_CNT = 0
 TOTAL_LATENCY = 0
 
+if (HTTP_PROXY_IP is not None or HTTP_PROXY_PORT is not None) and PROTO != "tcp":
+    print("You set an HTTP proxy but not using TCP. This won't work. Continuing without proxy.")
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM if "tcp" == PROTO else socket.SOCK_DGRAM)
-s.connect((SERVER_IP, SERVER_PORT))
-s.settimeout(1)
+
+if PROTO == "tcp" and HTTP_PROXY_IP is not None and HTTP_PROXY_PORT is not None:
+    s.connect((HTTP_PROXY_IP, int(HTTP_PROXY_PORT)))
+    s.send(b"CONNECT " + SERVER_IP.encode() + b":" + str(SERVER_PORT).encode() + b" HTTP/1.1\r\n\r\n")
+    print(s.recv(1000))
+else:
+    s.connect((SERVER_IP, SERVER_PORT))
+
+s.settimeout(2)
 
 if PROTO == "tcp":
     s.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
