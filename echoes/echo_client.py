@@ -66,10 +66,12 @@ i = 0
 while True:
     send_i(i)
     i += 1
-    send_i(i)
-    i += 1
-    send_i(i)
-    i += 1
+
+    if PROTO == "udp":
+        send_i(i)
+        i += 1
+        send_i(i)
+        i += 1
 
     try:
         time.sleep(1)
