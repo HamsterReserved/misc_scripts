@@ -1,0 +1,14 @@
+# /etc/systemd/system/clash.service
+[Unit]
+Description=Clash
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/root/clash/clash-current -d /root/clash
+ExecStartPost=sh -c "(ip rule add fwmark 1 table 100 ; ip route add local default dev lo table 100) || true"
+ExecStopPost=sh -c "(ip rule del fwmark 1 table 100 ; ip route flush table 100) || true"
+
+[Install]
+WantedBy=multi-user.target
